@@ -128,9 +128,19 @@ window.logout = async function(){await signOut(auth);showLogin("তুমি Log
 onAuthStateChanged(auth,async user=>{
  if(!user){showLogin();return}
  try{
-  const adminSnap=await getDoc(doc(db,"admins",user.uid));
-  if(!adminSnap.exists()||adminSnap.data().role!=="owner"||adminSnap.data().active!==true){
-   await signOut(auth);showLogin("এই অ্যাকাউন্টে Admin অনুমতি নেই।");return;
+  const adminSnap = await getDoc(doc(db, "admins", user.uid));
+  if (!adminSnap.exists()) {
+   await signOut(auth);
+   showLogin("সমস্যা: admins Collection-এ লগইন করা UID-এর Document পাওয়া যায়নি। Firebase Project ও Document ID মিলিয়ে দেখো।");
+   return;
+  }
+  const adminData = adminSnap.data();
+  if (adminData.role !== "owner" || adminData.active !== true) {
+   const roleValue = adminData.role === undefined ? "undefined" : String(adminData.role);
+   const activeValue = adminData.active === undefined ? "undefined" : String(adminData.active);
+   await signOut(auth);
+   showLogin("Admin তথ্য মিলছে না। পাওয়া গেছে: role = " + roleValue + ", active = " + activeValue + "। Firestore document-এর field/value হুবহু মিলিয়ে দেখো।");
+   return;
   }
   const snap=await getDoc(dataRef);
   if(snap.exists()){
